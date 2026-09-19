@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authenticationdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authenticationdb
+  template:
+    metadata:
+      labels:
+        app: authenticationdb
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "authentication"
+          volumeMounts:
+            - name: dbdata
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: dbdata
+          persistentVolumeClaim:
+            claimName: mysql-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authenticationdb
+spec:
+  type: ClusterIP
+  selector:
+    app: authenticationdb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

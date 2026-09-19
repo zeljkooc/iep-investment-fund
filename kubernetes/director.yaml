@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: director
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: director
+  template:
+    metadata:
+      labels:
+        app: director
+    spec:
+      containers:
+        - name: director
+          image: director
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5002
+          env:
+            - name: MONGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: MONGO_URL
+            - name: MONGO_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: MONGO_DB
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: config
+                  key: REDIS_URL
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secret
+                  key: JWT_SECRET_KEY
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: director
+spec:
+  type: LoadBalancer
+  selector:
+    app: director
+  ports:
+    - protocol: TCP
+      port: 5002
+      targetPort: 5002
