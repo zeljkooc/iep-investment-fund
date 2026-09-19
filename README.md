@@ -31,7 +31,6 @@ Employees can:
 * View owned and previously owned assets.
 * Create purchase proposals.
 * Create sale proposals.
-* Vote on investment decisions using Ethereum smart contracts.
 
 ### Director
 
